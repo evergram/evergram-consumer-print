@@ -647,18 +647,14 @@ function addPayment(user, imageset) {
     var photoCharge = 0;
 
     // give PAYG customers 5 free photos
-    if (user.billing.option == "PAYG" && photoCount < 5) {
+    if (user.billing.option == "PAYG" && photoCount <= 5) {
+        photoCount = 0;
+    } else if (user.billing.option == "PAYG" && photoCount > 5) {
         photoCount = photoCount - 5;
     }
 
     //check if plan is PAYG and if the user has less 5 photos. If so, we dont charge anything.
-    if (user.billing.option == "PAYG" && photoCount <= 5) {
-        // First 5 photos free for PAYG.
-        photoShipping = 3;
-        photoCount = 0;
-        photoCharge = photoCount;
-
-    } else if (user.billing.option == "PAYG" && photoCount > 5 && photoCount <= 10) {
+    if (user.billing.option == "PAYG" && photoCount <= 10) {
         // If PAYG and >5 but <=10. Charge .80 per photos + shipping
         photoShipping = 3;
         photoCharge = photoCount * .8;
