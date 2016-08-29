@@ -695,8 +695,8 @@ function addPayment(user, imageset) {
     }
 
     //convert stripe charges to cents
-    photoCharge = photoCharge * 100;
-    photoShipping = photoShipping * 100;
+    photoCharge = Math.round(photoCharge * 100);
+    photoShipping = Math.round(photoShipping * 100);
 
 
     logger.info('Invoice details for ' + userStripeId + '\n' +
