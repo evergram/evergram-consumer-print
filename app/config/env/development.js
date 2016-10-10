@@ -7,7 +7,7 @@
 module.exports = {
     billing: {
         stripe: {
-            secretAccessKey: 'sk_test_KN8z6UJtLbBWITp7FZUGiWKI'
+            secretAccessKey: 'sk_test_8jJSqwxigSQEQeEtP0DfyIye'
         },
         plans: ["VALUE100", "PHOTOADDICT100", "UNLTD100SHIP"],  // list of subscription plans for billing
         shippingDescription: "Shipping",

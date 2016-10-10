@@ -76,6 +76,9 @@ Consumer.prototype.consume = function(message) {
         }).then(function() {
             // Add shipping or PAYG payments to invoice
             return addPayment(currentUser, currentImageSet);
+        }).then(function() {
+            // Close customer account after printing
+            return closeAccount(currentUser);
         }).
         finally(function() {
             return cleanUp(currentImageSet, currentZipFile);
@@ -775,6 +778,69 @@ function addPayment(user, imageset) {
         }
     });
 }
+
+
+function closeAccount(user) {
+
+    logger.info('Closing account for ' + user.billing.stripeId);
+
+    var sub_deferreds = [];
+
+    // get user stripe subscriptions
+    return stripe.customers.retrieve(user.billing.stripeId, function(err, customer) {
+        
+            if (!!err) {
+                // error happened
+                logger.error('Close account error: ' + err);
+                return;
+
+            } else {
+
+                if (!!customer.subscriptions.data) {
+
+                    logger.info(customer.subscriptions.data.length + ' subscriptions found for user ' + user.getUsername());
+
+                    // for each subscription
+                    _.forEach(customer.subscriptions.data, function(subscription) {
+
+                        var deferred = q.defer();
+                        sub_deferreds.push(deferred.promise);
+
+                        logger.info('Cancelling subscription ' + subscription.id + ' for user ' + user.getUsername());
+
+                        // delete subscription
+                        stripe.subscriptions.del(subscription.id, { at_period_end: true }, function(delErr, confirmation) {
+
+                            if (!!delErr) {
+                                // some error
+                                logger.error('Close account error: ' + err);
+
+                            }  else {
+
+                                logger.info('Subscription ' + confirmation.id + ' set to cancel_at_period_end = ' + confirmation.cancel_at_period_end);
+                                deferred.resolve();
+                            }
+                        });
+                    })
+                        
+                } else {
+
+                    // no subscriptions found
+                    logger.error('Close account error: No subscriptions found for user ' + user.instagram.username);
+                }
+            }
+
+            q.all(sub_deferreds).then( function() {
+
+                logger.info('Changing plan to INACTIVE for user ' + user.getUsername());
+
+                // update user
+                user.billing.option = 'INACTIVE';
+                return userManager.update(user);
+            });
+        });
+}
+
 
 /**
  * Expose
