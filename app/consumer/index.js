@@ -40,6 +40,7 @@ Consumer.prototype.consume = function(message) {
     var currentUser;
     var currentZipFile;
 
+    logger.info('Starting consume() for user ' + message.data.id);
     /**
      * Query SQS to get a message
      */
@@ -82,6 +83,36 @@ Consumer.prototype.consume = function(message) {
         }).
         finally(function() {
             return cleanUp(currentImageSet, currentZipFile);
+        });
+};
+
+
+Consumer.prototype.closeAccountConsume = function(message) {
+    var currentImageSet;
+    var currentUser;
+
+    logger.info('Starting closeAccountConsume() for user ' + message.data.id);
+    
+    /**
+     * Query SQS to get a message
+     */
+    return getImageSet(message.data.id).
+        then(function(imageSet) {
+            currentImageSet = imageSet;
+
+            return getUser(currentImageSet.user._id);
+        }).
+        then(function(user) {
+            currentUser = user;
+
+            //stamp the user on the image set
+            currentImageSet.user = currentUser;
+
+            // Close customer account after printing
+            return closeAccount(currentUser);
+        }).
+        finally(function() {
+            return cleanUp(currentImageSet, null);
         });
 };
 
@@ -841,6 +872,7 @@ function closeAccount(user) {
         });
 }
 
+Consumer.prototype.closeAccount = closeAccount;
 
 /**
  * Expose

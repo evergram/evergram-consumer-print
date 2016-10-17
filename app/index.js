@@ -47,17 +47,31 @@ queue.on(queue.EVENTS.MESSAGE_RECEIVED,
     newrelic.createBackgroundTransaction('message:process', function(message, done) {
         logger.info('Received message');
 
-        consumer.consume(message).
-            then(function() {
-                logger.info('Completed processing message for user ' + message.data.id);
-            }).
-            fail(function(err) {
-                logger.error(err);
-            }).
-            finally(function() {
-                newrelic.endTransaction();
-                done();
-            });
+        if (message.data.hasPhotos === 'true') {
+            consumer.consume(message).
+                then(function() {
+                    logger.info('Completed print & close account processing message for user ' + message.data.id);
+                }).
+                fail(function(err) {
+                    logger.error(err);
+                }).
+                finally(function() {
+                    newrelic.endTransaction();
+                    done();
+                });
+        } else {
+            consumer.closeAccountConsume(message).
+                then(function() {
+                    logger.info('Completed close account processing message for user ' + message.data.id);
+                }).
+                fail(function(err) {
+                    logger.error(err);
+                }).
+                finally(function() {
+                    newrelic.endTransaction();
+                    done();
+                });
+        }
     }));
 
 //kick off the process
