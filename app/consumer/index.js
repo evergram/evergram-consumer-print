@@ -170,9 +170,7 @@ function getUser(id) {
     return userManager.
         find({
             criteria: {
-                _id: id,
-                active: true,
-                signupComplete: true
+                _id: id
             }
         }).
         then(function(user) {
@@ -180,7 +178,7 @@ function getUser(id) {
                 logger.info('Successfully found the image set user: ' + user.getUsername());
                 return user;
             } else {
-                throw 'Could not find a user for the id :' + id;
+                throw 'Could not find a user for the id: ' + id;
             }
         });
 }
